@@ -1,46 +1,87 @@
 # Multiple Disease Prediction System
 
-A production-ready Machine Learning pipeline for predicting multiple diseases (Heart Disease, Diabetes, Parkinson's) using Scikit-Learn, MLflow, and DVC.
+A production-ready Machine Learning project that predicts multiple diseases (Heart Disease, Diabetes, and Parkinson's) using Scikit-Learn with a full MLOps pipeline (MLflow + DVC) and a Flask web application for real-time predictions.
 
-## Features
-- **Modular Architecture**: Separate modules for ingestion, validation, training, evaluation, and registration.
-- **Multi-Dataset Support**: Handles Heart, Diabetes, and Parkinson's datasets with specific preprocessing.
-- **Experiment Tracking**: Uses MLflow (DAGsHub) for tracking parameters, metrics, and models.
-- **Pipeline Orchestration**: Uses DVC (Data Version Control) to manage pipeline stages.
-- **Model Registry**: Automated model registration and staging.
+---
 
-## Project Structure
+## 🚀 Features
+
+- **Flask Web App** – Interactive web interface to get disease predictions in real time.
+- **3 Disease Predictions** – Heart Disease, Diabetes, and Parkinson's Disease.
+- **Modular ML Pipeline** – Separate modules for data ingestion, validation, training, evaluation, and model registration.
+- **Experiment Tracking** – MLflow + DAGsHub for tracking parameters, metrics, and models.
+- **Pipeline Orchestration** – DVC manages and reproduces every pipeline stage.
+- **Model Registry** – Automated model registration and staging via MLflow Model Registry.
+- **Multi-Dataset Support** – Handles Heart, Diabetes, and Parkinson's datasets with specific preprocessing.
+
+---
+
+## 🖼️ App Pages
+
+| Route | Description |
+|---|---|
+| `/` | Home page with links to all disease predictors |
+| `/heart` | Heart Disease prediction form (13 features) |
+| `/diabetes` | Diabetes prediction form (8 features) |
+| `/parkinsons` | Parkinson's Disease prediction form (22 voice features) |
+
+---
+
+## 📁 Project Structure
+
 ```
-├── .dvc/
+disease-prediction/
+├── app/
+│   ├── app.py                    # Flask web application
+│   ├── static/
+│   │   └── style.css             # App stylesheet
+│   └── templates/
+│       ├── index.html            # Home page
+│       ├── heart.html            # Heart disease prediction page
+│       ├── diabetes.html         # Diabetes prediction page
+│       └── parkinsons.html       # Parkinson's prediction page
+├── artifacts/
+│   ├── models/                   # Trained .pkl model files
+│   └── metrics/                  # Evaluation metrics (metrics.json)
 ├── data/
+│   ├── raw/                      # Raw datasets downloaded from Kaggle
+│   └── processed/                # Train/test split CSVs
 ├── notebooks/
+│   ├── Multiple disease prediction system - heart.ipynb
+│   ├── Multiple disease prediction system - diabetes.ipynb
+│   └── Multiple disease prediction system - Parkinsons.ipynb
 ├── src/
 │   ├── data_pre/
-│   │   ├── data_ingestion.py
-│   │   ├── data_validation.py
+│   │   ├── data_ingestion.py     # Downloads data from Kaggle, splits train/test
+│   │   └── data_validation.py    # Validates schema and data integrity
 │   ├── model/
-│   │   ├── model_training.py
-│   │   ├── model_evaluation.py
-│   │   ├── model_register.py
-│   ├── logger.py
-│   ├── exception.py
-│   ├── utils.py
-│   └── pipeline.py
-├── dvc.yaml
-├── params.yaml
-├── requirements.txt
-├── setup.py
+│   │   ├── model_training.py     # Trains models and logs to MLflow
+│   │   ├── model_evaluation.py   # Evaluates models, logs metrics
+│   │   └── model_register.py     # Registers best models to MLflow Registry
+│   ├── pipeline.py               # End-to-end pipeline entry point
+│   ├── utils.py                  # Shared utility functions
+│   ├── logger.py                 # Logging configuration
+│   └── exception.py              # Custom exception handling
+├── dvc.yaml                      # DVC pipeline stage definitions
+├── dvc.lock                      # DVC lock file
+├── params.yaml                   # Model & data configuration
+├── requirements.txt              # Python dependencies
+├── setup.py                      # Package setup
 └── README.md
 ```
 
-## Setup Instructions
+---
+
+## ⚙️ Setup Instructions
 
 ### 1. Prerequisites
+
 - Python 3.8+
 - Kaggle Account (for dataset download)
 - DAGsHub Account (for MLflow tracking)
 
-### 2. Installation
+### 2. Clone & Install
+
 ```bash
 git clone <repository_url>
 cd disease-prediction
@@ -49,56 +90,119 @@ pip install -e .
 ```
 
 ### 3. Configuration
-1. **Kaggle API**: Place your `kaggle.json` in `~/.kaggle/` or set `KAGGLE_USERNAME` and `KAGGLE_KEY` environment variables.
-2. **MLflow / DAGsHub**:
-   Set environment variables for authentication:
-   ```bash
-   export MLFLOW_TRACKING_URI="https://dagshub.com/<your_username>/<repo_name>.mlflow"
-   export MLFLOW_TRACKING_USERNAME="<your_username>"
-   export MLFLOW_TRACKING_PASSWORD="<your_token>"
-   ```
-   *Note: Using DAGsHub token is recommended. Find it in DAGsHub Settings -> Tokens.*
-   
-   **Verification:**
-   Run `python debug_dagshub.py` to check your connection.
 
-### 4. Running the Pipeline
-You can run the entire pipeline using DVC or the Python entry point.
-
-**Using Python:**
+**Kaggle API:**
+Place your `kaggle.json` in `~/.kaggle/` or set environment variables:
 ```bash
+export KAGGLE_USERNAME="<your_username>"
+export KAGGLE_KEY="<your_api_key>"
+```
+
+**MLflow / DAGsHub:**
+```bash
+export MLFLOW_TRACKING_URI="https://dagshub.com/<your_username>/<repo_name>.mlflow"
+export MLFLOW_TRACKING_USERNAME="<your_username>"
+export MLFLOW_TRACKING_PASSWORD="<your_dagshub_token>"
+```
+> 💡 Find your DAGsHub token at: **DAGsHub → Settings → Tokens**
+
+You can also place these in a `.env` file at the project root.
+
+---
+
+## 🔄 DVC Pipeline
+
+The ML pipeline has 5 stages managed by DVC:
+
+| Stage | Command | Description |
+|---|---|---|
+| `data_ingestion` | `python -m src.data_pre.data_ingestion` | Downloads datasets from Kaggle, splits into train/test |
+| `data_validation` | `python -m src.data_pre.data_validation` | Validates schema and data integrity |
+| `model_training` | `python -m src.model.model_training` | Trains models, logs to MLflow |
+| `model_evaluation` | `python -m src.model.model_evaluation` | Evaluates models, saves metrics |
+| `model_register` | `python -m src.model.model_register` | Registers best models to MLflow Registry |
+
+**Run the full pipeline:**
+```bash
+# Using DVC (recommended)
+dvc repro
+
+# Using Python
 python -m src.pipeline
 ```
 
-**Using DVC:**
+---
+
+## 🤖 Models
+
+| Disease | Model | Target Column | Key Params |
+|---|---|---|---|
+| Heart Disease | Logistic Regression | `target` | `solver: liblinear` |
+| Diabetes | SVM | `Outcome` | `kernel: linear` |
+| Parkinson's | SVM | `status` | `kernel: linear` |
+
+Datasets are sourced from Kaggle:
+- `johnsmith88/heart-disease-dataset`
+- `aarikethjariwala/diabities`
+- `imkrkannan/parkinsons`
+
+---
+
+## 🌐 Running the Flask Web App
+
+Make sure the pipeline has been run first so model `.pkl` files exist in `artifacts/models/`.
+
 ```bash
-dvc repro
+cd app
+python app.py
 ```
 
-## Troubleshooting
+Then open your browser at: **http://127.0.0.1:5000**
+
+### App Routes & Input Features
+
+**Heart Disease** (`/heart`) — 13 features:
+`age`, `sex`, `cp`, `trestbps`, `chol`, `fbs`, `restecg`, `thalach`, `exang`, `oldpeak`, `slope`, `ca`, `thal`
+
+**Diabetes** (`/diabetes`) — 8 features:
+`Pregnancies`, `Glucose`, `BloodPressure`, `SkinThickness`, `Insulin`, `BMI`, `DiabetesPedigreeFunction`, `Age`
+
+**Parkinson's** (`/parkinsons`) — 22 voice features:
+`fo`, `fhi`, `flo`, `jitter_percent`, `jitter_abs`, `rap`, `ppq`, `ddp`, `shimmer`, `shimmer_db`, `apq3`, `apq5`, `apq`, `dda`, `nhr`, `hnr`, `rpde`, `dfa`, `spread1`, `spread2`, `d2`, `ppe`
+
+---
+
+## 🔧 Troubleshooting
 
 ### DAGsHub Authentication Errors
-If you see 404 or Authentication errors:
-1. Ensure `MLFLOW_TRACKING_USERNAME` and `MLFLOW_TRACKING_PASSWORD` are set correctly.
-2. Ensure you have write access to the repository specified in `MLFLOW_TRACKING_URI`.
-3. If running locally without DAGsHub, set `MLFLOW_TRACKING_URI` to a local path:
+If you see 404 or authentication errors:
+1. Verify `MLFLOW_TRACKING_USERNAME` and `MLFLOW_TRACKING_PASSWORD` are set correctly.
+2. Ensure you have write access to the repository in `MLFLOW_TRACKING_URI`.
+3. For local-only usage, set:
    ```bash
    export MLFLOW_TRACKING_URI="file:./mlruns"
    ```
 
+### Model Not Loading in App
+If you see **"Error: Model not loaded"** in the web app:
+- Ensure the DVC pipeline has been run (`dvc repro`) so `.pkl` files exist in `artifacts/models/`.
+- Check that filenames match: `heart-disease-dataset_model.pkl`, `diabities_model.pkl`, `parkinsons_model.pkl`.
+
 ### Registry Errors
-If you see "Unable to find a logged_model", ensure that the training step completed successfully and that you are using a consistent Tracking URI across all steps.
+If you see `"Unable to find a logged_model"`:
+- Ensure the training step completed successfully.
+- Use a consistent `MLFLOW_TRACKING_URI` across all pipeline steps.
 
-## Components
+---
 
-- **Data Ingestion**: Downloads data from Kaggle and splits it into train/test sets.
-- **Data Validation**: Validates the schema and data integrity.
-- **Model Training**: Trains specific models (Logistic Regression, SVM) for each disease dataset and logs to MLflow.
-- **Model Evaluation**: Evaluates models on test data and logs metrics (Accuracy, Precision, Recall, F1).
-- **Model Registration**: Registers the best models in the MLflow Model Registry and transitions to Staging.
+## 📦 Dependencies
 
-## Configuration
-Adjust model parameters and dataset settings in `params.yaml`.
+```
+pandas, numpy, scikit-learn, mlflow, dagshub, pyyaml, kaggle, dvc, python-dotenv, flask
+```
 
-## License
+---
+
+## 📄 License
+
 MIT
