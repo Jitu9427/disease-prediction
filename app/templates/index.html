@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Disease Prediction System</h1>
+        <p style="text-align: center; color: #7f8c8d;">Select a disease to predict based on health metrics.</p>
+        
+        <div class="nav-links">
+            <a href="/heart" class="nav-card">
+                <h3>Heart Disease</h3>
+                <p>Predict heart disease risk using key indicators.</p>
+            </a>
+            
+            <a href="/diabetes" class="nav-card">
+                <h3>Diabetes</h3>
+                <p>Analyze health metrics to predict diabetes.</p>
+            </a>
+            
+            <a href="/parkinsons" class="nav-card">
+                <h3>Parkinson's</h3>
+                <p>Detect Parkinson's disease from vocal measurements.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
