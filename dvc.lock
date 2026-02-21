@@ -1,0 +1,88 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python -m src.data_pre.data_ingestion
+    deps:
+    - path: src/data_pre/data_ingestion.py
+      hash: md5
+      md5: d8d462972309fa6af0cbeee06cd9705b
+      size: 3527
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: c2652c9eb3fbf5d9806c465355c39bed.dir
+      size: 101364
+      nfiles: 6
+    - path: data/raw
+      hash: md5
+      md5: c918acad2c270fec646713c44c1d2a7d.dir
+      size: 102684
+      nfiles: 3
+  data_validation:
+    cmd: python -m src.data_pre.data_validation
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: c2652c9eb3fbf5d9806c465355c39bed.dir
+      size: 101364
+      nfiles: 6
+    - path: src/data_pre/data_validation.py
+      hash: md5
+      md5: ea92ca7f7585634ab93eb67d8ed57f33
+      size: 2884
+  model_training:
+    cmd: python -m src.model.model_training
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: c2652c9eb3fbf5d9806c465355c39bed.dir
+      size: 101364
+      nfiles: 6
+    - path: params.yaml
+      hash: md5
+      md5: 8f6cf1302f3622ffc62dccda7bf8ae95
+      size: 578
+    - path: src/model/model_training.py
+      hash: md5
+      md5: 50026d48ced6ff8f2a2c30d5d68330da
+      size: 3728
+    outs:
+    - path: artifacts/models
+      hash: md5
+      md5: 59109bea1bfa950a720b8ca83a8b99fd.dir
+      size: 42018
+      nfiles: 3
+  model_evaluation:
+    cmd: python -m src.model.model_evaluation
+    deps:
+    - path: artifacts/models
+      hash: md5
+      md5: 59109bea1bfa950a720b8ca83a8b99fd.dir
+      size: 42018
+      nfiles: 3
+    - path: data/processed
+      hash: md5
+      md5: c2652c9eb3fbf5d9806c465355c39bed.dir
+      size: 101364
+      nfiles: 6
+    - path: src/model/model_evaluation.py
+      hash: md5
+      md5: a522836dee9897ff3cea4ac667703cff
+      size: 4205
+    outs:
+    - path: artifacts/metrics/metrics.json
+      hash: md5
+      md5: 36c0cdac9eec646aa7f930a096afa0aa
+      size: 586
+  model_register:
+    cmd: python -m src.model.model_register
+    deps:
+    - path: artifacts/models
+      hash: md5
+      md5: 59109bea1bfa950a720b8ca83a8b99fd.dir
+      size: 42018
+      nfiles: 3
+    - path: src/model/model_register.py
+      hash: md5
+      md5: 7b351a3a73f131158619b7a25a588cc9
+      size: 3088
