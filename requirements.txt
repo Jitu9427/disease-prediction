@@ -1,0 +1,9 @@
+pandas
+numpy
+scikit-learn
+mlflow
+dagshub
+pyyaml
+kaggle
+dvc
+python-dotenv
