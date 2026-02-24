@@ -75,8 +75,8 @@ class ModelTrainer:
                     mlflow.log_param("dataset", dataset_folder)
                     mlflow.log_param("model_type", model_type)
 
-                    # Log model in MLflow
-                    mlflow.sklearn.log_model(model, artifact_path="model")
+                    # Log model in MLflow (MLflow 3.x uses `name=` not `artifact_path=`)
+                    mlflow.sklearn.log_model(model, name="model")
 
                     # Save model locally (DVC tracked folder)
                     model_dir = os.path.join("artifacts", "models")

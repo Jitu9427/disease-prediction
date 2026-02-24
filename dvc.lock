@@ -44,8 +44,8 @@ stages:
       size: 578
     - path: src/model/model_training.py
       hash: md5
-      md5: 50026d48ced6ff8f2a2c30d5d68330da
-      size: 3728
+      md5: 2cb29cc8af2cd2dbce0977d3a14f977a
+      size: 3766
     outs:
     - path: artifacts/models
       hash: md5
@@ -84,5 +84,5 @@ stages:
       nfiles: 3
     - path: src/model/model_register.py
       hash: md5
-      md5: 7b351a3a73f131158619b7a25a588cc9
-      size: 3088
+      md5: 8aa24e030ccea5a7c0356ab35c163837
+      size: 3185

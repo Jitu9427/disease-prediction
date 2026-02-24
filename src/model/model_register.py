@@ -50,43 +50,42 @@ class ModelRegister:
                     with open(model_path, "rb") as f:
                         model = pickle.load(f)
 
-                    # 🔥 Start run and log model correctly
+                    # Log model inside a run — use returned ModelInfo.model_uri directly
                     with mlflow.start_run(run_name=f"Register_{dataset_folder}") as run:
 
-                        logged_model = mlflow.sklearn.log_model(
+                        model_info = mlflow.sklearn.log_model(
                             sk_model=model,
-                            name="model"   # ✅ IMPORTANT (not artifact_path)
+                            name="model",
                         )
 
-                        run_id = run.info.run_id
+                        # ✅ MLflow 3.x: use model_uri from ModelInfo object, not manual string
+                        model_uri = model_info.model_uri
 
-                    # 🔥 Register using model URI from logged model
-                    model_uri = f"runs:/{run_id}/model"
+                        mv = mlflow.register_model(
+                            model_uri=model_uri,
+                            name=model_name,
+                        )
 
-                    mv = mlflow.register_model(
-                        model_uri=model_uri,
+                        logging.info(
+                            f"Registered {model_name} version {mv.version}"
+                        )
+
+                    # Set alias "Staging" (MLflow 3.x: stage-based lifecycle removed)
+                    client.set_registered_model_alias(
                         name=model_name,
-                    )
-
-                    logging.info(
-                        f"Registered {model_name} version {mv.version}"
-                    )
-
-                    # Move to staging
-                    client.transition_model_version_stage(
-                        name=model_name,
+                        alias="Staging",
                         version=mv.version,
-                        stage="Staging",
-                        archive_existing_versions=True,
                     )
 
                     logging.info(
-                        f"{model_name} moved to Staging"
+                        f"{model_name} v{mv.version} aliased as 'Staging'"
                     )
 
                 except Exception as e:
                     logging.error(
-                        f"Registration failed for {model_name}: {e}"
+                        f"Registration failed for {model_name}: {e}\n"
+                        f"  model_path={model_path}",
+                        exc_info=True,
                     )
 
         except Exception as e:
