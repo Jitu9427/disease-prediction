@@ -1,0 +1,11 @@
+# Flask app dependencies only
+# (excludes training/data tools: dvc, kaggle, pyyaml)
+
+flask
+gunicorn
+pandas
+numpy
+scikit-learn
+mlflow
+dagshub
+python-dotenv

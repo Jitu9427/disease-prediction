@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# DVC
+.dvc
+.dvcignore
+dvc.yaml
+dvc.lock
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Notebooks & training artifacts
+notebooks/
+src/
+logs/
+mlruns/
+artifacts/
+data/
+
+# Dev/IDE files
+.vscode/
+.idea/
+*.egg-info/
+dist/
+build/
+
+# Docs
+README.md
+LICENSE
+
+# Credentials (pass at runtime via --env-file instead)
+# .env   ← commented out so it IS included (app needs it to boot)
