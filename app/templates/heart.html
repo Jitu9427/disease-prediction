@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Heart Disease Prediction — Enter your cardiovascular health metrics to receive an AI-powered risk assessment.">
+    <meta name="description"
+        content="Heart Disease Prediction — Enter your cardiovascular health metrics to receive an AI-powered risk assessment.">
     <title>Heart Disease Prediction — MediPredict</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
     <!-- Navigation -->
@@ -33,11 +36,13 @@
                 <div class="page-header-icon heart-icon">❤️</div>
                 <div class="page-header-text">
                     <h1>Heart Disease Prediction</h1>
-                    <p>Enter your cardiovascular health parameters below. Our ML model will analyze the data and assess your risk for coronary artery disease based on clinical indicators.</p>
+                    <p>Enter your cardiovascular health parameters below. Our ML model will analyze the data and assess
+                        your risk for coronary artery disease based on clinical indicators.</p>
                 </div>
             </div>
 
-            <!-- Form Card -->
+            <!-- Form Card — hidden after prediction -->
+            {% if not prediction_text %}
             <div class="form-card animate-slide">
                 <form action="{{ url_for('heart') }}" method="post" id="heart-form">
 
@@ -46,7 +51,8 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="age">Age</label>
-                            <input type="number" step="1" name="age" id="age" placeholder="e.g. 54" required min="1" max="120">
+                            <input type="number" step="1" name="age" id="age" placeholder="e.g. 54" required min="1"
+                                max="120">
                             <span class="field-hint">Patient age in years</span>
                         </div>
                         <div class="form-group">
@@ -74,7 +80,8 @@
                         </div>
                         <div class="form-group">
                             <label for="trestbps">Resting Blood Pressure</label>
-                            <input type="number" step="any" name="trestbps" id="trestbps" placeholder="e.g. 130" required>
+                            <input type="number" step="any" name="trestbps" id="trestbps" placeholder="e.g. 130"
+                                required>
                             <span class="field-hint">mm Hg on admission</span>
                         </div>
                         <div class="form-group">
@@ -162,29 +169,36 @@
                         🔍 Run Prediction
                     </button>
                 </form>
-
-                <!-- Result -->
-                {% if prediction_text %}
-                {% set is_positive = 'has Heart Disease' in prediction_text %}
-                {% set is_error = 'Error' in prediction_text %}
-                <div class="result-box {% if is_error %}neutral{% elif is_positive %}positive{% else %}negative{% endif %}">
-                    <div class="result-icon">
-                        {% if is_error %}⚠️{% elif is_positive %}⚠️{% else %}✅{% endif %}
-                    </div>
-                    <div class="result-content">
-                        <div class="result-label">Prediction Result</div>
-                        <div class="result-text">{{ prediction_text }}</div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Disclaimer -->
-                <div class="info-panel">
-                    <span class="info-icon">ℹ️</span>
-                    <span>This prediction is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified physician.</span>
-                </div>
-
             </div>
+            {% else %}
+            <!-- Result Card —  shown after prediction -->
+            {% set is_positive = 'has Heart Disease' in prediction_text %}
+            {% set is_error = 'Error' in prediction_text %}
+            <div
+                class="result-card {% if is_error %}card-error{% elif is_positive %}card-positive{% else %}card-negative{% endif %}">
+                <div class="result-card-inner">
+                    <div class="result-card-icon">
+                        {% if is_error %}⚠️{% elif is_positive %}❤️{% else %}✅{% endif %}
+                    </div>
+                    <div class="result-card-body">
+                        <div class="result-card-tag">
+                            {% if is_error %}Error{% elif is_positive %}Risk Detected{% else %}No Risk Detected{% endif
+                            %}
+                        </div>
+                        <div class="result-card-title">{{ prediction_text }}</div>
+                        <div class="result-card-sub">
+                            {% if is_positive %}Please consult a cardiologist for further evaluation.
+                            {% elif is_error %}Check your inputs and try again.
+                            {% else %}Your cardiovascular indicators appear normal based on this analysis.{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="{{ url_for('heart') }}" class="btn-predict"
+                style="margin-top:20px; text-decoration:none; display:flex;">
+                🔄 Predict Again
+            </a>
+            {% endif %}
         </div>
     </div>
 
@@ -199,4 +213,5 @@
     </footer>
 
 </body>
+
 </html>

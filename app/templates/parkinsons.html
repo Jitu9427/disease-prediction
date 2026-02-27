@@ -41,7 +41,8 @@
                 </div>
             </div>
 
-            <!-- Form Card -->
+            <!-- Form Card — hidden after prediction -->
+            {% if not prediction_text %}
             <div class="form-card animate-slide">
                 <form action="{{ url_for('parkinsons') }}" method="post" id="parkinsons-form">
 
@@ -174,31 +175,37 @@
                         🔍 Run Prediction
                     </button>
                 </form>
-
-                <!-- Result -->
-                {% if prediction_text %}
-                {% set is_positive = "has Parkinson" in prediction_text %}
-                {% set is_error = 'Error' in prediction_text %}
-                <div
-                    class="result-box {% if is_error %}neutral{% elif is_positive %}positive{% else %}negative{% endif %}">
-                    <div class="result-icon">
-                        {% if is_error %}⚠️{% elif is_positive %}⚠️{% else %}✅{% endif %}
-                    </div>
-                    <div class="result-content">
-                        <div class="result-label">Prediction Result</div>
-                        <div class="result-text">{{ prediction_text }}</div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Disclaimer -->
-                <div class="info-panel">
-                    <span class="info-icon">ℹ️</span>
-                    <span>This prediction is for informational purposes only and is not a substitute for professional
-                        medical advice, diagnosis, or treatment. Always consult a qualified neurologist.</span>
-                </div>
-
             </div>
+            {% else %}
+            <!-- Result Card -->
+            {% set is_positive = "has Parkinson" in prediction_text %}
+            {% set is_error = 'Error' in prediction_text %}
+            <div
+                class="result-card {% if is_error %}card-error{% elif is_positive %}card-positive{% else %}card-negative{% endif %}">
+                <div class="result-card-inner">
+                    <div class="result-card-icon">
+                        {% if is_error %}⚠️{% elif is_positive %}🧠{% else %}✅{% endif %}
+                    </div>
+                    <div class="result-card-body">
+                        <div class="result-card-tag">
+                            {% if is_error %}Error{% elif is_positive %}Risk Detected{% else %}No Risk Detected{% endif
+                            %}
+                        </div>
+                        <div class="result-card-title">{{ prediction_text }}</div>
+                        <div class="result-card-sub">
+                            {% if is_positive %}Please consult a neurologist for a comprehensive clinical evaluation.
+                            {% elif is_error %}Check your vocal biomarker inputs and try again.
+                            {% else %}Your vocal biomarker profile shows no significant Parkinson's indicators.{% endif
+                            %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="{{ url_for('parkinsons') }}" class="btn-predict"
+                style="margin-top:20px; text-decoration:none; display:flex;">
+                🔄 Predict Again
+            </a>
+            {% endif %}
         </div>
     </div>
 
