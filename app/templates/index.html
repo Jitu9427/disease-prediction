@@ -3,30 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Disease Prediction System</title>
+    <meta name="description" content="MediPredict — AI-powered disease prediction system for Heart Disease, Diabetes, and Parkinson's Disease.">
+    <title>MediPredict — AI Disease Prediction System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Disease Prediction System</h1>
-        <p style="text-align: center; color: #7f8c8d;">Select a disease to predict based on health metrics.</p>
-        
-        <div class="nav-links">
-            <a href="/heart" class="nav-card">
-                <h3>Heart Disease</h3>
-                <p>Predict heart disease risk using key indicators.</p>
-            </a>
-            
-            <a href="/diabetes" class="nav-card">
-                <h3>Diabetes</h3>
-                <p>Analyze health metrics to predict diabetes.</p>
-            </a>
-            
-            <a href="/parkinsons" class="nav-card">
-                <h3>Parkinson's</h3>
-                <p>Detect Parkinson's disease from vocal measurements.</p>
-            </a>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="brand-icon">🧬</div>
+            <span class="brand-name">MediPredict</span>
+        </a>
+        <ul class="navbar-nav">
+            <li><a href="/heart">Heart Disease</a></li>
+            <li><a href="/diabetes">Diabetes</a></li>
+            <li><a href="/parkinsons">Parkinson's</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-wrapper">
+
+        <!-- Hero -->
+        <section class="hero animate-fade">
+            <div class="hero-badge">
+                <span>✦</span>
+                AI-Powered Health Intelligence
+            </div>
+            <h1>
+                Predict Disease Risk<br>
+                with <span class="gradient-text">Machine Learning</span>
+            </h1>
+            <p>
+                Advanced clinical decision support powered by state-of-the-art ML models trained on large medical datasets. Get instant predictions for three major diseases.
+            </p>
+
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Disease Models</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">ML</div>
+                    <div class="stat-label">Powered</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">⚡</div>
+                    <div class="stat-label">Instant Results</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Disease Cards -->
+        <section class="cards-section">
+            <p class="section-label">Select a Prediction Module</p>
+            <h2 class="section-title">Choose Your Analysis</h2>
+
+            <div class="cards-grid">
+
+                <!-- Heart Disease -->
+                <a href="/heart" class="disease-card heart" id="heart-card">
+                    <div class="card-icon-wrap">❤️</div>
+                    <h3>Heart Disease</h3>
+                    <p>
+                        Analyze cardiovascular risk factors including ECG data, cholesterol levels, and blood pressure to predict the probability of coronary artery disease.
+                    </p>
+                    <div class="card-tags">
+                        <span class="card-tag">13 Features</span>
+                        <span class="card-tag">ECG Data</span>
+                        <span class="card-tag">Blood Pressure</span>
+                    </div>
+                    <div class="card-cta">
+                        Start Prediction
+                        <div class="card-cta-arrow">→</div>
+                    </div>
+                </a>
+
+                <!-- Diabetes -->
+                <a href="/diabetes" class="disease-card diabetes" id="diabetes-card">
+                    <div class="card-icon-wrap">🩸</div>
+                    <h3>Diabetes</h3>
+                    <p>
+                        Evaluate metabolic indicators such as glucose levels, BMI, and insulin resistance to determine the likelihood of Type 2 diabetes.
+                    </p>
+                    <div class="card-tags">
+                        <span class="card-tag">8 Features</span>
+                        <span class="card-tag">Glucose Levels</span>
+                        <span class="card-tag">BMI</span>
+                    </div>
+                    <div class="card-cta">
+                        Start Prediction
+                        <div class="card-cta-arrow">→</div>
+                    </div>
+                </a>
+
+                <!-- Parkinson's -->
+                <a href="/parkinsons" class="disease-card parkinsons" id="parkinsons-card">
+                    <div class="card-icon-wrap">🧠</div>
+                    <h3>Parkinson's Disease</h3>
+                    <p>
+                        Detect early signs of Parkinson's through vocal biomarker analysis — including jitter, shimmer, and fundamental frequency measurements.
+                    </p>
+                    <div class="card-tags">
+                        <span class="card-tag">22 Features</span>
+                        <span class="card-tag">Vocal Analysis</span>
+                        <span class="card-tag">Biomarkers</span>
+                    </div>
+                    <div class="card-cta">
+                        Start Prediction
+                        <div class="card-cta-arrow">→</div>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- Feature Strip -->
+        <div class="features-strip">
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <span>Private &amp; Secure — No data stored</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <span>Real-time Predictions</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🤖</div>
+                <span>MLflow Model Registry</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <span>Clinical-grade Inputs</span>
+            </div>
         </div>
+
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <span>© 2025 MediPredict. For research purposes only — not a substitute for medical advice.</span>
+        <div class="footer-links">
+            <a href="/heart">Heart</a>
+            <a href="/diabetes">Diabetes</a>
+            <a href="/parkinsons">Parkinson's</a>
+        </div>
+    </footer>
+
 </body>
 </html>
