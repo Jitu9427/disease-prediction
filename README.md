@@ -172,6 +172,40 @@ Then open your browser at: **http://127.0.0.1:5000**
 
 ---
 
+## 🐳 Docker (Recommended)
+
+The app is available as a pre-built image on Docker Hub — no Python or DVC setup needed.
+
+### 1. Pull the image
+
+```bash
+docker pull jitu369/disease-prediction-app
+```
+
+### 2. Create a `.env` file
+
+Create a `.env` file with your DagsHub credentials (the app fetches models from DagsHub MLflow at startup):
+
+```env
+MLFLOW_TRACKING_URI=https://dagshub.com/Jitu9427/disease-prediction.mlflow
+MLFLOW_TRACKING_USERNAME=<your_dagshub_username>
+MLFLOW_TRACKING_PASSWORD=<your_dagshub_token>
+```
+
+> 💡 Find your DAGsHub token at: **DAGsHub → Settings → Tokens**
+
+### 3. Run the container
+
+```bash
+docker run -p 5000:5000 --env-file .env jitu369/disease-prediction-app
+```
+
+Then open your browser at: **http://localhost:5000**
+
+> ⏳ First startup takes ~30–60 seconds while the app downloads all 3 models from DagsHub MLflow Registry.
+
+---
+
 ## 🔧 Troubleshooting
 
 ### DAGsHub Authentication Errors
