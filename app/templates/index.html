@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="MediPredict — AI-powered disease prediction system for Heart Disease, Diabetes, and Parkinson's Disease.">
+    <meta name="description"
+        content="MediPredict — AI-powered disease prediction system for Heart Disease, Diabetes, and Parkinson's Disease.">
     <title>MediPredict — AI Disease Prediction System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
     <!-- Navigation -->
@@ -19,6 +22,13 @@
             <li><a href="/heart">Heart Disease</a></li>
             <li><a href="/diabetes">Diabetes</a></li>
             <li><a href="/parkinsons">Parkinson's</a></li>
+            {% if session.get('user') %}
+            <li class="nav-user"><span>{{ session.get('email') }}</span></li>
+            <li><a href="/logout" class="btn-logout">Logout</a></li>
+            {% else %}
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register" class="btn-register">Register</a></li>
+            {% endif %}
         </ul>
     </nav>
 
@@ -35,7 +45,8 @@
                 with <span class="gradient-text">Machine Learning</span>
             </h1>
             <p>
-                Advanced clinical decision support powered by state-of-the-art ML models trained on large medical datasets. Get instant predictions for three major diseases.
+                Advanced clinical decision support powered by state-of-the-art ML models trained on large medical
+                datasets. Get instant predictions for three major diseases.
             </p>
 
             <div class="hero-stats">
@@ -66,7 +77,8 @@
                     <div class="card-icon-wrap">❤️</div>
                     <h3>Heart Disease</h3>
                     <p>
-                        Analyze cardiovascular risk factors including ECG data, cholesterol levels, and blood pressure to predict the probability of coronary artery disease.
+                        Analyze cardiovascular risk factors including ECG data, cholesterol levels, and blood pressure
+                        to predict the probability of coronary artery disease.
                     </p>
                     <div class="card-tags">
                         <span class="card-tag">13 Features</span>
@@ -84,7 +96,8 @@
                     <div class="card-icon-wrap">🩸</div>
                     <h3>Diabetes</h3>
                     <p>
-                        Evaluate metabolic indicators such as glucose levels, BMI, and insulin resistance to determine the likelihood of Type 2 diabetes.
+                        Evaluate metabolic indicators such as glucose levels, BMI, and insulin resistance to determine
+                        the likelihood of Type 2 diabetes.
                     </p>
                     <div class="card-tags">
                         <span class="card-tag">8 Features</span>
@@ -102,7 +115,8 @@
                     <div class="card-icon-wrap">🧠</div>
                     <h3>Parkinson's Disease</h3>
                     <p>
-                        Detect early signs of Parkinson's through vocal biomarker analysis — including jitter, shimmer, and fundamental frequency measurements.
+                        Detect early signs of Parkinson's through vocal biomarker analysis — including jitter, shimmer,
+                        and fundamental frequency measurements.
                     </p>
                     <div class="card-tags">
                         <span class="card-tag">22 Features</span>
@@ -151,4 +165,5 @@
     </footer>
 
 </body>
+
 </html>

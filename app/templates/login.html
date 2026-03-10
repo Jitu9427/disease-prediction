@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — MediPredict</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="brand-icon">🧬</div>
+            <span class="brand-name">MediPredict</span>
+        </a>
+    </nav>
+
+    <div class="page-wrapper">
+        <div class="prediction-page animate-fade" style="max-width: 450px; margin: 40px auto;">
+            <div class="page-header">
+                <div class="page-header-icon" style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🔑</div>
+                <div class="page-header-text">
+                    <h1>Welcome Back</h1>
+                    <p>Log in to access disease prediction modules</p>
+                </div>
+            </div>
+
+            <div class="form-card animate-slide">
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <div class="result-card card-error" style="margin-bottom: 20px; padding: 15px;">
+                      {{ messages[0] }}
+                    </div>
+                  {% endif %}
+                {% endwith %}
+
+                <form action="{{ url_for('login') }}" method="post">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" name="email" id="email" placeholder="name@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-predict" style="width: 100%;">Log In</button>
+                </form>
+                
+                <p style="margin-top: 20px; text-align: center; color: var(--text-secondary);">
+                    Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--primary); font-weight: 500;">Register here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <span>© 2025 MediPredict. Research use only.</span>
+    </footer>
+</body>
+</html>

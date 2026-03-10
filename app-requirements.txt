@@ -9,3 +9,4 @@ scikit-learn
 mlflow
 dagshub
 python-dotenv
+pyrebase4

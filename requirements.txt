@@ -7,3 +7,4 @@ pyyaml
 kaggle
 dvc
 python-dotenv
+pyrebase4

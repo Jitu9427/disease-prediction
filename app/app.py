@@ -1,14 +1,30 @@
 import os
 import sys
 import numpy as np
+from functools import wraps
 from dotenv import load_dotenv
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+import pyrebase
 
-# ── Load .env (MLFLOW_TRACKING_URI, credentials) ──────────────────────────────
+# ── Load .env (MLFLOW_TRACKING_URI, credentials, Firebase config) ──────────────
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
 
 import mlflow
 import mlflow.pyfunc
+
+# ── Firebase Configuration ────────────────────────────────────────────────────
+firebase_config = {
+    "apiKey": os.getenv("FIREBASE_API_KEY"),
+    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+    "projectId": os.getenv("FIREBASE_PROJECT_ID"),
+    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+    "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
+    "appId": os.getenv("FIREBASE_APP_ID"),
+    "databaseURL": os.getenv("FIREBASE_DATABASE_URL")
+}
+
+firebase = pyrebase.initialize_app(firebase_config)
+auth = firebase.auth()
 
 # ── DAGsHub / MLflow auth setup ───────────────────────────────────────────────
 def _setup_mlflow():
@@ -32,9 +48,6 @@ def _setup_mlflow():
 _setup_mlflow()
 
 # ── Load models from MLflow Registry (alias = "Staging") ─────────────────────
-#    URI format:  models:/<RegisteredModelName>@<alias>
-#    mlflow.pyfunc.load_model returns a PythonModel wrapper that exposes .predict()
-
 def _load_from_registry(model_name: str):
     """Fetch the version aliased as 'Staging' from the MLflow Model Registry."""
     uri = f"models:/{model_name}@Staging"
@@ -47,22 +60,66 @@ def _load_from_registry(model_name: str):
         print(f"[MLflow] ❌ Failed to load '{model_name}': {e}", file=sys.stderr)
         return None
 
-
 # Load all three models at startup
 heart_model      = _load_from_registry("Model_heart-disease-dataset")
 diabetes_model   = _load_from_registry("Model_diabities")
 parkinsons_model = _load_from_registry("Model_parkinsons")
 
-# ── Flask app ─────────────────────────────────────────────────────────────────
+# ── Flask app setup ───────────────────────────────────────────────────────────
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "medi-predict-fallback-key-123")
 
+# ── Auth Decorator ────────────────────────────────────────────────────────────
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            flash("Please log in to access this feature.")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
 
+# ── Auth Routes ───────────────────────────────────────────────────────────────
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            session["user"] = user["localId"]
+            session["email"] = email
+            return redirect(url_for("index"))
+        except Exception:
+            flash("Invalid email or password.")
+    return render_template("login.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        try:
+            auth.create_user_with_email_and_password(email, password)
+            flash("Account created successfully! Please log in.")
+            return redirect(url_for("login"))
+        except Exception as e:
+            flash(f"Registration failed: {str(e)}")
+    return render_template("register.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    session.pop("email", None)
+    return redirect(url_for("index"))
+
+# ── App Routes ────────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
 @app.route("/heart", methods=["GET", "POST"])
+@login_required
 def heart():
     prediction_text = ""
     if request.method == "POST":
@@ -100,8 +157,8 @@ def heart():
 
     return render_template("heart.html", prediction_text=prediction_text)
 
-
 @app.route("/diabetes", methods=["GET", "POST"])
+@login_required
 def diabetes():
     prediction_text = ""
     if request.method == "POST":
@@ -134,8 +191,8 @@ def diabetes():
 
     return render_template("diabetes.html", prediction_text=prediction_text)
 
-
 @app.route("/parkinsons", methods=["GET", "POST"])
+@login_required
 def parkinsons():
     prediction_text = ""
     if request.method == "POST":
@@ -164,7 +221,6 @@ def parkinsons():
             prediction_text = f"Error in prediction: {e}"
 
     return render_template("parkinsons.html", prediction_text=prediction_text)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
