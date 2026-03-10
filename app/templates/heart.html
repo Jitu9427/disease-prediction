@@ -23,7 +23,7 @@
             <li><a href="/diabetes">Diabetes</a></li>
             <li><a href="/parkinsons">Parkinson's</a></li>
             {% if session.get('user') %}
-            <li class="nav-user"><span>{{ session.get('email') }}</span></li>
+            <li class="nav-user"><span>{{ session.get('name', session.get('email')) }}</span></li>
             <li><a href="/logout" class="btn-logout">Logout</a></li>
             {% else %}
             <li><a href="/login">Login</a></li>

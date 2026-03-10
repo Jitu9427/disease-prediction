@@ -25,6 +25,7 @@ firebase_config = {
 
 firebase = pyrebase.initialize_app(firebase_config)
 auth = firebase.auth()
+db = firebase.database()
 
 # ── DAGsHub / MLflow auth setup ───────────────────────────────────────────────
 def _setup_mlflow():
@@ -89,18 +90,35 @@ def login():
             user = auth.sign_in_with_email_and_password(email, password)
             session["user"] = user["localId"]
             session["email"] = email
+            
+            # Fetch user name from Realtime Database
+            profile = db.child("users").child(user["localId"]).get().val()
+            if profile:
+                session["name"] = profile.get("name", "User")
+            else:
+                session["name"] = "User"
+                
             return redirect(url_for("index"))
-        except Exception:
+        except Exception as e:
+            print(f"Login error: {e}")
             flash("Invalid email or password.")
     return render_template("login.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        name = request.form.get("name")
+        age = request.form.get("age")
+        sex = request.form.get("sex")
         email = request.form.get("email")
         password = request.form.get("password")
         try:
-            auth.create_user_with_email_and_password(email, password)
+            user = auth.create_user_with_email_and_password(email, password)
+            
+            # Store profile data in Realtime Database
+            data = {"name": name, "age": age, "sex": sex, "email": email}
+            db.child("users").child(user["localId"]).set(data)
+            
             flash("Account created successfully! Please log in.")
             return redirect(url_for("login"))
         except Exception as e:
@@ -111,6 +129,7 @@ def register():
 def logout():
     session.pop("user", None)
     session.pop("email", None)
+    session.pop("name", None)
     return redirect(url_for("index"))
 
 # ── App Routes ────────────────────────────────────────────────────────────────
