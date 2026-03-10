@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - MediPredict</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .profile-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 50px;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 50px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .profile-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-img-wrapper {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-img-wrapper i {
+            font-size: 80px;
+            color: var(--text-muted);
+        }
+
+        .upload-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .upload-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .profile-right {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            width: fit-content;
+        }
+
+        @media (max-width: 768px) {
+            .profile-card {
+                grid-template-columns: 1fr;
+                padding: 30px;
+                gap: 30px;
+            }
+
+            .profile-left {
+                order: 1;
+            }
+
+            .profile-right {
+                order: 2;
+                text-align: center;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <a href="/" class="navbar-brand">
+                <div class="brand-icon">🧬</div>
+                <span class="brand-name">MediPredict</span>
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="/">Home</a></li>
+                <li><a href="/heart">Heart</a></li>
+                <li><a href="/diabetes">Diabetes</a></li>
+                <li><a href="/parkinsons">Parkinson's</a></li>
+                {% if session.get('user') %}
+                <li class="nav-user">
+                    <a href="/profile" class="navbar-link-profile">
+                        {% if session.get('profile_img') %}
+                        <img src="{{ session.get('profile_img') }}" class="navbar-thumb">
+                        {% else %}
+                        <div class="navbar-thumb">👤</div>
+                        {% endif %}
+                        <span>{{ session.get('name', session.get('email')) }}</span>
+                    </a>
+                </li>
+                <li><a href="/logout" class="btn-logout">Logout</a></li>
+                {% else %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register" class="btn-register">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <main class="profile-container">
+            <div class="section-header" style="text-align: left; margin-bottom: 30px;">
+                <h1 class="section-title">User Profile</h1>
+                <p class="section-subtitle">Manage your personal information and profile picture.</p>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-info"
+                style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background: rgba(79, 142, 247, 0.1); border: 1px solid rgba(79, 142, 247, 0.2); color: var(--accent-blue);">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <div class="profile-card">
+                <div class="profile-left">
+                    <div class="profile-img-wrapper">
+                        {% if user.profile_img %}
+                        <img src="{{ user.profile_img }}" alt="Profile Picture">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.name }}&background=0D8ABC&color=fff&size=200"
+                            alt="Default Avatar">
+                        {% endif %}
+                    </div>
+
+                    <form action="{{ url_for('profile') }}" method="post" enctype="multipart/form-data"
+                        id="upload-form">
+                        <label class="upload-btn">
+                            Change Photo
+                            <input type="file" name="profile_image" style="display: none;"
+                                onchange="this.form.submit()">
+                        </label>
+                    </form>
+                    <div class="status-badge">Account Active</div>
+                </div>
+
+                <div class="profile-right">
+                    <div class="info-group">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value">{{ user.name }}</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Email Address</span>
+                        <span class="info-value">{{ user.email }}</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Age</span>
+                        <span class="info-value">{{ user.age }} Years</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Sex</span>
+                        <span class="info-value">
+                            {% if user.sex == '1' %}Male{% elif user.sex == '0' %}Female{% else %}Not Specified{% endif
+                            %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

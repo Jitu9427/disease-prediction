@@ -26,6 +26,7 @@ firebase_config = {
 firebase = pyrebase.initialize_app(firebase_config)
 auth = firebase.auth()
 db = firebase.database()
+storage = firebase.storage()
 
 # ── DAGsHub / MLflow auth setup ───────────────────────────────────────────────
 def _setup_mlflow():
@@ -91,10 +92,11 @@ def login():
             session["user"] = user["localId"]
             session["email"] = email
             
-            # Fetch user name from Realtime Database
+            # Fetch user info from Realtime Database
             profile = db.child("users").child(user["localId"]).get().val()
             if profile:
                 session["name"] = profile.get("name", "User")
+                session["profile_img"] = profile.get("profile_img", "")
             else:
                 session["name"] = "User"
                 
@@ -116,7 +118,13 @@ def register():
             user = auth.create_user_with_email_and_password(email, password)
             
             # Store profile data in Realtime Database
-            data = {"name": name, "age": age, "sex": sex, "email": email}
+            data = {
+                "name": name, 
+                "age": age, 
+                "sex": sex, 
+                "email": email,
+                "profile_img": ""
+            }
             db.child("users").child(user["localId"]).set(data)
             
             flash("Account created successfully! Please log in.")
@@ -125,11 +133,40 @@ def register():
             flash(f"Registration failed: {str(e)}")
     return render_template("register.html")
 
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    user_id = session.get("user")
+    user_profile = db.child("users").child(user_id).get().val()
+    
+    if request.method == "POST":
+        if "profile_image" in request.files:
+            file = request.files["profile_image"]
+            if file.filename != "":
+                try:
+                    # Upload to Firebase Storage
+                    path = f"profile_images/{user_id}_{file.filename}"
+                    storage.child(path).put(file)
+                    
+                    # Get download URL
+                    url = storage.child(path).get_url(None)
+                    
+                    # Update database and session
+                    db.child("users").child(user_id).update({"profile_img": url})
+                    session["profile_img"] = url
+                    flash("Profile picture updated!")
+                    return redirect(url_for("profile"))
+                except Exception as e:
+                    flash(f"Upload failed: {str(e)}")
+                    
+    return render_template("profile.html", user=user_profile)
+
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     session.pop("email", None)
     session.pop("name", None)
+    session.pop("profile_img", None)
     return redirect(url_for("index"))
 
 # ── App Routes ────────────────────────────────────────────────────────────────
