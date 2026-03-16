@@ -103,7 +103,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.DOCKER_USERNAME != '' }}
         tags: |
-          ${{ secrets.DOCKER_USERNAME || 'local' }}/disease-prediction:latest
-          ${{ secrets.DOCKER_USERNAME || 'local' }}/disease-prediction:${{ github.sha }}
+          ${{ secrets.DOCKER_USERNAME || 'disease-prediction' }}/disease-prediction-app:latest
+          ${{ secrets.DOCKER_USERNAME || 'disease-prediction' }}/disease-prediction-app:${{ github.sha }}
