@@ -15,6 +15,8 @@ setup(
         'dagshub',
         'pyyaml',
         'kaggle',
-        'dvc'
+        'dvc',
+        'pyrebase4',
+        'urllib3<2.0.0'
     ],
 )
