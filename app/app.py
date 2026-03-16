@@ -14,19 +14,30 @@ import mlflow.pyfunc
 
 # ── Firebase Configuration ────────────────────────────────────────────────────
 firebase_config = {
-    "apiKey": os.getenv("FIREBASE_API_KEY"),
-    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
-    "projectId": os.getenv("FIREBASE_PROJECT_ID"),
-    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
-    "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
-    "appId": os.getenv("FIREBASE_APP_ID"),
-    "databaseURL": os.getenv("FIREBASE_DATABASE_URL")
+    "apiKey": os.getenv("FIREBASE_API_KEY", "dummy"),
+    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN", "dummy"),
+    "projectId": os.getenv("FIREBASE_PROJECT_ID", "dummy"),
+    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET", "dummy"),
+    "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID", "dummy"),
+    "appId": os.getenv("FIREBASE_APP_ID", "dummy"),
+    "databaseURL": os.getenv("FIREBASE_DATABASE_URL", "https://dummy.firebaseio.com/")
 }
 
-firebase = pyrebase.initialize_app(firebase_config)
-auth = firebase.auth()
-db = firebase.database()
-storage = firebase.storage()
+# Global placeholders for Firebase components
+auth = None
+db = None
+storage = None
+
+try:
+    if all(v and v != "dummy" for v in firebase_config.values()) or os.getenv("TESTING") == "True":
+        firebase = pyrebase.initialize_app(firebase_config)
+        auth = firebase.auth()
+        db = firebase.database()
+        storage = firebase.storage()
+    else:
+        print("[WARN] Firebase config missing or incomplete. Some features will be disabled.")
+except Exception as e:
+    print(f"[ERROR] Firebase initialization failed: {e}")
 
 # ── DAGsHub / MLflow auth setup ───────────────────────────────────────────────
 def _setup_mlflow():
