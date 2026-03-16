@@ -102,7 +102,9 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Set Docker image name
-      run: echo "IMAGE=${{ secrets.DOCKER_USERNAME }}/disease-prediction-app" >> $GITHUB_ENV
+      env:
+        DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+      run: echo "IMAGE=${DOCKER_USER}/disease-prediction-app" >> $GITHUB_ENV
 
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v4
