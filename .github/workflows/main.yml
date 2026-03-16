@@ -99,19 +99,11 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
-    - name: Set Image Name
-      run: |
-        if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
-          echo "IMAGE_NAME=disease-prediction-app" >> $GITHUB_ENV
-        else
-          echo "IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/disease-prediction-app" >> $GITHUB_ENV
-        fi
-
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v4
       with:
         context: .
         push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.DOCKER_USERNAME != '' }}
         tags: |
-          ${{ env.IMAGE_NAME }}:latest
-          ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          ${{ secrets.DOCKER_USERNAME && format('{0}/disease-prediction-app:latest', secrets.DOCKER_USERNAME) || 'disease-prediction-app:latest' }}
+          ${{ secrets.DOCKER_USERNAME && format('{0}/disease-prediction-app:{1}', secrets.DOCKER_USERNAME, github.sha) || format('disease-prediction-app:{0}', github.sha) }}
