@@ -17,11 +17,6 @@ RUN pip install --no-cache-dir -r app-requirements.txt
 # ── Copy the Flask application ─────────────────────────────────────────────────
 COPY app/ .
 
-# ── Copy .env for MLflow / DagsHub credentials ────────────────────────────────
-# NOTE: For production, prefer passing these as env vars at runtime:
-#       docker run --env-file .env ...
-COPY .env .
-
 # ── Expose the port Flask runs on ─────────────────────────────────────────────
 EXPOSE 5000
 
