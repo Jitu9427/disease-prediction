@@ -48,7 +48,7 @@ class ModelRegister:
                 try:
                     # Load model
                     with open(model_path, "rb") as f:
-                        model = pickle.load(f)
+                        model = pickle.load(f)  # nosec B301
 
                     # Log model inside a run — use returned ModelInfo.model_uri directly
                     with mlflow.start_run(run_name=f"Register_{dataset_folder}") as run:

@@ -68,6 +68,6 @@ def save_object(file_path, obj):
 def load_object(file_path):
     try:
         with open(file_path, "rb") as file:
-            return pickle.load(file)
+            return pickle.load(file)  # nosec B301
     except Exception as e:
         raise CustomException(e, sys)

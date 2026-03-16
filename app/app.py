@@ -279,4 +279,4 @@ def parkinsons():
     return render_template("parkinsons.html", prediction_text=prediction_text)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG", "False").lower() == "true")
