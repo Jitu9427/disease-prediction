@@ -99,11 +99,14 @@ jobs:
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
       run: |
-        if [ -n "${DOCKER_USER}" ]; then
-          echo "IMAGE=${DOCKER_USER}/disease-prediction-app" >> $GITHUB_ENV
+        # Trim whitespace from the secret value
+        CLEAN_USER=$(echo "${DOCKER_USER}" | xargs 2>/dev/null || echo "")
+        # Only use username if it looks like a valid Docker Hub username
+        if echo "${CLEAN_USER}" | grep -qE '^[a-zA-Z0-9][a-zA-Z0-9_.-]+$'; then
+          echo "IMAGE=${CLEAN_USER}/disease-prediction-app" >> $GITHUB_ENV
           echo "DO_PUSH=true" >> $GITHUB_ENV
         else
-          echo "[WARN] DOCKER_USERNAME secret is not set. Will build only, no push."
+          echo "No valid DOCKER_USERNAME found. Will build only, skipping push."
           echo "IMAGE=disease-prediction-app" >> $GITHUB_ENV
           echo "DO_PUSH=false" >> $GITHUB_ENV
         fi
