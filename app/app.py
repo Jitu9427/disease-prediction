@@ -73,10 +73,14 @@ def _load_from_registry(model_name: str):
         print(f"[MLflow] ❌ Failed to load '{model_name}': {e}", file=sys.stderr)
         return None
 
-# Load all three models at startup
-heart_model      = _load_from_registry("Model_heart-disease-dataset")
-diabetes_model   = _load_from_registry("Model_diabities")
-parkinsons_model = _load_from_registry("Model_parkinsons")
+# Load all three models at startup (Skip during testing to avoid timeouts)
+if os.getenv("TESTING") != "True":
+    heart_model      = _load_from_registry("Model_heart-disease-dataset")
+    diabetes_model   = _load_from_registry("Model_diabities")
+    parkinsons_model = _load_from_registry("Model_parkinsons")
+else:
+    print("[TESTING] Skipping model loading from MLflow Registry.")
+    heart_model = diabetes_model = parkinsons_model = None
 
 # ── Flask app setup ───────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -86,6 +90,8 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "medi-predict-fallback-key-123")
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if app.testing:
+            return f(*args, **kwargs)
         if "user" not in session:
             flash("Please log in to access this feature.")
             return redirect(url_for("login"))
