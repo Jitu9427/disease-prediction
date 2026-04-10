@@ -108,9 +108,10 @@ def login():
             user = auth.sign_in_with_email_and_password(email, password)
             session["user"] = user["localId"]
             session["email"] = email
+            session["token"] = user["idToken"]  # Store token for DB access
             
-            # Fetch user info from Realtime Database
-            profile = db.child("users").child(user["localId"]).get().val()
+            # Fetch user info from Realtime Database (using token for auth)
+            profile = db.child("users").child(user["localId"]).get(user["idToken"]).val()
             if profile:
                 session["name"] = profile.get("name", "User")
                 session["profile_img"] = profile.get("profile_img", "")
@@ -133,8 +134,11 @@ def register():
         password = request.form.get("password")
         try:
             user = auth.create_user_with_email_and_password(email, password)
+            token = user["idToken"]
+            session["token"] = token
+            session["user"] = user["localId"]
             
-            # Store profile data in Realtime Database
+            # Store profile data in Realtime Database (passing token for permission)
             data = {
                 "name": name, 
                 "age": age, 
@@ -142,19 +146,28 @@ def register():
                 "email": email,
                 "profile_img": ""
             }
-            db.child("users").child(user["localId"]).set(data)
+            db.child("users").child(user["localId"]).set(data, token)
             
             flash("Account created successfully! Please log in.")
             return redirect(url_for("login"))
         except Exception as e:
-            flash(f"Registration failed: {str(e)}")
+            error_msg = str(e)
+            if "EMAIL_EXISTS" in error_msg:
+                flash("Error: This email is already registered. Please login instead.")
+            elif "INVALID_EMAIL" in error_msg:
+                flash("Error: Invalid email address format.")
+            elif "WEAK_PASSWORD" in error_msg:
+                flash("Error: Password should be at least 6 characters.")
+            else:
+                flash(f"Registration failed: {error_msg}")
     return render_template("register.html")
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
     user_id = session.get("user")
-    user_profile = db.child("users").child(user_id).get().val()
+    token = session.get("token")
+    user_profile = db.child("users").child(user_id).get(token).val()
     
     if request.method == "POST":
         if "profile_image" in request.files:
@@ -163,13 +176,13 @@ def profile():
                 try:
                     # Upload to Firebase Storage
                     path = f"profile_images/{user_id}_{file.filename}"
-                    storage.child(path).put(file)
+                    storage.child(path).put(file, token)
                     
                     # Get download URL
-                    url = storage.child(path).get_url(None)
+                    url = storage.child(path).get_url(token)
                     
                     # Update database and session
-                    db.child("users").child(user_id).update({"profile_img": url})
+                    db.child("users").child(user_id).update({"profile_img": url}, token)
                     session["profile_img"] = url
                     flash("Profile picture updated!")
                     return redirect(url_for("profile"))
@@ -184,6 +197,7 @@ def logout():
     session.pop("email", None)
     session.pop("name", None)
     session.pop("profile_img", None)
+    session.pop("token", None)
     return redirect(url_for("index"))
 
 # ── App Routes ────────────────────────────────────────────────────────────────
