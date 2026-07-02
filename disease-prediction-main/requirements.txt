@@ -1,0 +1,11 @@
+pandas
+numpy
+scikit-learn
+mlflow
+dagshub
+pyyaml
+kaggle
+dvc
+python-dotenv
+pyrebase4
+urllib3<2.0.0

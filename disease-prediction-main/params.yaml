@@ -1,0 +1,29 @@
+data:
+  test_size: 0.2
+  random_state: 42
+  dataset_names:
+    - johnsmith88/heart-disease-dataset
+    - aarikethjariwala/diabities
+    - imkrkannan/parkinsons
+
+models:
+  heart-disease-dataset:
+    model_type: logistic_regression
+    target_column: target
+    drop_columns: []
+    params:
+      solver: liblinear
+
+  diabities:
+    model_type: svm
+    target_column: Outcome
+    drop_columns: []
+    params:
+      kernel: linear
+
+  parkinsons:
+    model_type: svm
+    target_column: status
+    drop_columns: ["name"]
+    params:
+      kernel: linear

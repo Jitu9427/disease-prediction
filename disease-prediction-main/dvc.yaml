@@ -1,0 +1,45 @@
+stages:
+
+  data_ingestion:
+    cmd: python -m src.data_pre.data_ingestion
+    deps:
+      - src/data_pre/data_ingestion.py
+    outs:
+      - data/raw
+      - data/processed
+
+
+  data_validation:
+    cmd: python -m src.data_pre.data_validation
+    deps:
+      - src/data_pre/data_validation.py
+      - data/processed
+    # No outs → validation only checks, does not produce file
+
+
+  model_training:
+    cmd: python -m src.model.model_training
+    deps:
+      - src/model/model_training.py
+      - data/processed
+      - params.yaml
+    outs:
+      - artifacts/models
+
+
+  model_evaluation:
+    cmd: python -m src.model.model_evaluation
+    deps:
+      - src/model/model_evaluation.py
+      - artifacts/models
+      - data/processed
+    metrics:
+      - artifacts/metrics/metrics.json:
+          cache: false
+
+
+  model_register:
+    cmd: python -m src.model.model_register
+    deps:
+      - src/model/model_register.py
+      - artifacts/models

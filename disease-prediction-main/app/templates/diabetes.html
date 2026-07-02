@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Diabetes Prediction — Analyze your metabolic health metrics for diabetes risk assessment.">
+    <title>Diabetes Prediction — MediPredict</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <div class="brand-icon">🧬</div>
+            <span class="brand-name">MediPredict</span>
+        </a>
+        <ul class="navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/heart">Heart</a></li>
+            <li><a href="/parkinsons">Parkinson's</a></li>
+            {% if session.get('user') %}
+            <li class="nav-user">
+                <a href="/profile" class="navbar-link-profile">
+                    {% if session.get('profile_img') %}
+                    <img src="{{ session.get('profile_img') }}" class="navbar-thumb">
+                    {% else %}
+                    <div class="navbar-thumb">👤</div>
+                    {% endif %}
+                    <span>{{ session.get('name', session.get('email')) }}</span>
+                </a>
+            </li>
+            <li><a href="/logout" class="btn-logout">Logout</a></li>
+            {% else %}
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register" class="btn-register">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="page-wrapper">
+        <div class="prediction-page">
+
+            <!-- Back -->
+            <a href="/" class="back-btn">← Back to Home</a>
+
+            <!-- Page Header -->
+            <div class="page-header animate-fade">
+                <div class="page-header-icon diabetes-icon">🩸</div>
+                <div class="page-header-text">
+                    <h1>Diabetes Prediction</h1>
+                    <p>Enter your metabolic health indicators below. Our ML model will evaluate glucose levels, BMI, and
+                        other biomarkers to assess diabetes risk.</p>
+                </div>
+            </div>
+
+            <!-- Form Card — hidden after prediction -->
+            {% if not prediction_text %}
+            <div class="form-card animate-slide">
+                <form action="{{ url_for('diabetes') }}" method="post" id="diabetes-form">
+
+                    <!-- Reproductive -->
+                    <div class="form-section-title">👩 Reproductive History</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="Pregnancies">Number of Pregnancies</label>
+                            <input type="number" step="1" name="Pregnancies" id="Pregnancies" placeholder="e.g. 2"
+                                required min="0">
+                            <span class="field-hint">Enter 0 if not applicable</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="Age">Age</label>
+                            <input type="number" step="1" name="Age" id="Age" placeholder="e.g. 35" required min="1"
+                                max="120">
+                            <span class="field-hint">Patient age in years</span>
+                        </div>
+                    </div>
+
+                    <!-- Blood Metrics -->
+                    <div class="form-section-title">🩺 Blood & Metabolic Metrics</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="Glucose">Plasma Glucose Concentration</label>
+                            <input type="number" step="any" name="Glucose" id="Glucose" placeholder="e.g. 120" required
+                                min="0">
+                            <span class="field-hint">mg/dL (2-hour oral glucose tolerance test)</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="BloodPressure">Diastolic Blood Pressure</label>
+                            <input type="number" step="any" name="BloodPressure" id="BloodPressure"
+                                placeholder="e.g. 72" required min="0">
+                            <span class="field-hint">mm Hg</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="Insulin">2-Hour Serum Insulin</label>
+                            <input type="number" step="any" name="Insulin" id="Insulin" placeholder="e.g. 80" required
+                                min="0">
+                            <span class="field-hint">μU/mL</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="DiabetesPedigreeFunction">Diabetes Pedigree Function</label>
+                            <input type="number" step="any" name="DiabetesPedigreeFunction"
+                                id="DiabetesPedigreeFunction" placeholder="e.g. 0.627" required min="0">
+                            <span class="field-hint">Family history score</span>
+                        </div>
+                    </div>
+
+                    <!-- Body Metrics -->
+                    <div class="form-section-title">⚖️ Body Composition</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="SkinThickness">Triceps Skin Fold Thickness</label>
+                            <input type="number" step="any" name="SkinThickness" id="SkinThickness"
+                                placeholder="e.g. 23" required min="0">
+                            <span class="field-hint">mm</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="BMI">Body Mass Index (BMI)</label>
+                            <input type="number" step="any" name="BMI" id="BMI" placeholder="e.g. 28.5" required
+                                min="0">
+                            <span class="field-hint">Weight (kg) / Height² (m)</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-predict" id="predict-btn-diabetes">
+                        🔍 Run Prediction
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <!-- Result Card -->
+            {% set is_positive = 'Diabetic' in prediction_text and 'not' not in prediction_text %}
+            {% set is_error = 'Error' in prediction_text %}
+            <div
+                class="result-card {% if is_error %}card-error{% elif is_positive %}card-positive{% else %}card-negative{% endif %}">
+                <div class="result-card-inner">
+                    <div class="result-card-icon">
+                        {% if is_error %}⚠️{% elif is_positive %}🩸{% else %}✅{% endif %}
+                    </div>
+                    <div class="result-card-body">
+                        <div class="result-card-tag">
+                            {% if is_error %}Error{% elif is_positive %}Risk Detected{% else %}No Risk Detected{% endif
+                            %}
+                        </div>
+                        <div class="result-card-title">{{ prediction_text }}</div>
+                        <div class="result-card-sub">
+                            {% if is_positive %}Please consult an endocrinologist for further evaluation and blood
+                            tests.
+                            {% elif is_error %}Check your inputs and try again.
+                            {% else %}Your metabolic indicators appear within normal range based on this analysis.{%
+                            endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="{{ url_for('diabetes') }}" class="btn-predict"
+                style="margin-top:20px; text-decoration:none; display:flex;">
+                🔄 Predict Again
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <span>© 2025 MediPredict. Research use only.</span>
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/heart">Heart</a>
+            <a href="/parkinsons">Parkinson's</a>
+        </div>
+    </footer>
+
+</body>
+
+</html>
