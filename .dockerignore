@@ -16,7 +16,6 @@ __pycache__
 .Python
 
 # Notebooks & training artifacts
-notebooks/
 src/
 logs/
 mlruns/
