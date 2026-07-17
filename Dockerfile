@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir -r app-requirements.txt
 
 # ── Copy the Flask application ─────────────────────────────────────────────────
 COPY app/ .
+COPY notebooks/ /notebooks/
 
 # ── Expose the port Flask runs on ─────────────────────────────────────────────
 EXPOSE 5000
