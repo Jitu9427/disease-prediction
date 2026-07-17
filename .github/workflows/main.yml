@@ -128,3 +128,20 @@ jobs:
           ${{ env.IMAGE }}:latest
           ${{ env.IMAGE }}:${{ github.sha }}
 
+  deploy:
+    needs: [test-app]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Render Deploy Hook
+        env:
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$deploy_url" ]; then
+            echo "Triggering deployment to Render..."
+            curl -X POST "$deploy_url"
+          else
+            echo "RENDER_DEPLOY_HOOK is not set, skipping automatic deployment."
+          fi
+
+
