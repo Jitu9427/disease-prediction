@@ -4,6 +4,8 @@ import pickle
 import pandas as pd
 
 from functools import wraps
+from dotenv import load_dotenv
+import pyrebase
 from flask import (
     Flask,
     render_template,
@@ -14,22 +16,46 @@ from flask import (
     flash,
 )
 
+# Load .env (Firebase config, etc.)
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
+
 app = Flask(__name__)
-app.secret_key = "disease_prediction_secret_key"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "disease_prediction_secret_key")
 
 # ----------------------------
-# Paths
+# Firebase Configuration
 # ----------------------------
-# app.py is inside: disease-prediction-main/app/app.py
-# Models are inside: disease-prediction-main/notebooks/
+firebase_config = {
+    "apiKey": os.getenv("FIREBASE_API_KEY", "dummy"),
+    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN", "dummy"),
+    "projectId": os.getenv("FIREBASE_PROJECT_ID", "dummy"),
+    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET", "dummy"),
+    "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID", "dummy"),
+    "appId": os.getenv("FIREBASE_APP_ID", "dummy"),
+    "databaseURL": os.getenv("FIREBASE_DATABASE_URL", "https://dummy.firebaseio.com/")
+}
 
+# Global placeholders for Firebase components
+auth = None
+db = None
+storage = None
+
+try:
+    if all(v and v != "dummy" for v in firebase_config.values()) or os.getenv("TESTING") == "True" or app.testing:
+        firebase = pyrebase.initialize_app(firebase_config)
+        auth = firebase.auth()
+        db = firebase.database()
+        storage = firebase.storage()
+    else:
+        print("[WARN] Firebase config missing or incomplete. Some features will be disabled.")
+except Exception as e:
+    print(f"[ERROR] Firebase initialization failed: {e}")
+
+# ----------------------------
+# Paths & Models
+# ----------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, "notebooks")
-USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
-
-# ----------------------------
-# Load Models (.sav files)
-# ----------------------------
 
 with open(os.path.join(MODEL_DIR, "heart_disease_model.sav"), "rb") as f:
     heart_model = pickle.load(f)  # nosec
@@ -40,21 +66,6 @@ with open(os.path.join(MODEL_DIR, "diabetes_model.sav"), "rb") as f:
 with open(os.path.join(MODEL_DIR, "parkinsons_model.sav"), "rb") as f:
     parkinsons_model = pickle.load(f)  # nosec
 
-# ----------------------------
-# User Functions
-# ----------------------------
-
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "w") as f:
-            json.dump({}, f)
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
-
-
-def save_users(users):
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=4)
 
 # ----------------------------
 # Login Required Decorator
@@ -63,6 +74,8 @@ def save_users(users):
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        if app.testing:
+            return func(*args, **kwargs)
         if "user" not in session:
             return redirect(url_for("login"))
         return func(*args, **kwargs)
@@ -94,23 +107,27 @@ def register():
         email    = request.form["email"]
         password = request.form["password"]
 
-        users = load_users()
+        try:
+            if auth is None or db is None:
+                raise Exception("Firebase services are not initialized.")
 
-        if email in users:
-            flash("Email already registered!")
+            user = auth.create_user_with_email_and_password(email, password)
+
+            # Store profile data in Realtime Database
+            data = {
+                "name": name,
+                "age": age,
+                "sex": sex,
+                "email": email,
+                "profile_img": ""
+            }
+            db.child("users").child(user["localId"]).set(data, token=user["idToken"])
+
+            flash("Registration Successful! Please log in.")
+            return redirect(url_for("login"))
+        except Exception as e:
+            flash(f"Registration failed: {str(e)}")
             return redirect(url_for("register"))
-
-        users[email] = {
-            "name": name,
-            "age": age,
-            "sex": sex,
-            "email": email,
-            "password": password
-        }
-        save_users(users)
-
-        flash("Registration Successful! Please log in.")
-        return redirect(url_for("login"))
 
     return render_template("register.html")
 
@@ -127,16 +144,30 @@ def login():
         email    = request.form["email"]
         password = request.form["password"]
 
-        users = load_users()
+        try:
+            if auth is None or db is None:
+                raise Exception("Firebase services are not initialized.")
 
-        if email in users and users[email]["password"] == password:
-            session["user"] = email
-            session["name"] = users[email]["name"]
+            user = auth.sign_in_with_email_and_password(email, password)
+            session["user"] = user["localId"]
+            session["email"] = email
+            session["idToken"] = user["idToken"]
+
+            # Fetch user info from Realtime Database
+            profile = db.child("users").child(user["localId"]).get(token=user["idToken"]).val()
+            if profile:
+                session["name"] = profile.get("name", "User")
+                session["profile_img"] = profile.get("profile_img", "")
+            else:
+                session["name"] = "User"
+
             return redirect(url_for("index"))
+        except Exception as e:
+            print(f"Login error: {e}")
+            flash("Invalid Email or Password")
+            return redirect(url_for("login"))
 
-        flash("Invalid Email or Password")
-
-    return render_template("login (1).html")
+    return render_template("login.html")
 
 # ---------------------------------
 # Logout
@@ -147,6 +178,39 @@ def logout():
     session.clear()
     flash("Logged out successfully.")
     return redirect(url_for("login"))
+
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    user_id = session.get("user")
+    id_token = session.get("idToken")
+    if db is None or storage is None:
+        flash("Firebase services are not initialized.")
+        return redirect(url_for("index"))
+
+    user_profile = db.child("users").child(user_id).get(token=id_token).val()
+
+    if request.method == "POST":
+        if "profile_image" in request.files:
+            file = request.files["profile_image"]
+            if file.filename != "":
+                try:
+                    # Upload to Firebase Storage
+                    path = f"profile_images/{user_id}_{file.filename}"
+                    storage.child(path).put(file)
+
+                    # Get download URL
+                    url = storage.child(path).get_url(None)
+
+                    # Update database and session
+                    db.child("users").child(user_id).update({"profile_img": url}, token=id_token)
+                    session["profile_img"] = url
+                    flash("Profile picture updated!")
+                    return redirect(url_for("profile"))
+                except Exception as e:
+                    flash(f"Upload failed: {str(e)}")
+
+    return render_template("profile.html", user=user_profile)
 
 # ---------------------------------
 # Home Page
@@ -189,7 +253,7 @@ def heart():
                 prediction_text = "The person does not have Heart Disease."
         except Exception as e:
             prediction_text = f"Error: {str(e)}"
-    return render_template("heart (1).html", prediction_text=prediction_text)
+    return render_template("heart.html", prediction_text=prediction_text)
 
 # ---------------------------------
 # Diabetes

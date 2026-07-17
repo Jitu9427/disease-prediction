@@ -22,6 +22,22 @@
             <li><a href="/">Home</a></li>
             <li><a href="/heart">Heart</a></li>
             <li><a href="/parkinsons">Parkinson's</a></li>
+            {% if session.get('user') %}
+            <li class="nav-user">
+                <a href="/profile" class="navbar-link-profile">
+                    {% if session.get('profile_img') %}
+                    <img src="{{ session.get('profile_img') }}" class="navbar-thumb">
+                    {% else %}
+                    <div class="navbar-thumb">👤</div>
+                    {% endif %}
+                    <span>{{ session.get('name', session.get('email')) }}</span>
+                </a>
+            </li>
+            <li><a href="/logout" class="btn-logout">Logout</a></li>
+            {% else %}
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register" class="btn-register">Register</a></li>
+            {% endif %}
         </ul>
     </nav>
 
@@ -130,9 +146,11 @@
                         </div>
                         <div class="result-card-title">{{ prediction_text }}</div>
                         <div class="result-card-sub">
-                            {% if is_positive %}Please consult an endocrinologist for further evaluation and blood tests.
+                            {% if is_positive %}Please consult an endocrinologist for further evaluation and blood
+                            tests.
                             {% elif is_error %}Check your inputs and try again.
-                            {% else %}Your metabolic indicators appear within normal range based on this analysis.{% endif %}
+                            {% else %}Your metabolic indicators appear within normal range based on this analysis.{%
+                            endif %}
                         </div>
                     </div>
                 </div>
