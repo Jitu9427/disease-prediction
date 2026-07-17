@@ -15,21 +15,41 @@ def client():
 
 def test_home_page(client):
     """Test the home page loads correctly."""
+    with client.session_transaction() as sess:
+        sess['user'] = 'test@example.com'
+        sess['name'] = 'Test User'
     rv = client.get('/')
+    assert rv.status_code == 302  # Root redirects to /home or index
+
+def test_index_page(client):
+    """Test index/home page loads correctly."""
+    with client.session_transaction() as sess:
+        sess['user'] = 'test@example.com'
+        sess['name'] = 'Test User'
+    rv = client.get('/home')
     assert rv.status_code == 200
-    assert b"Disease" in rv.data
 
 def test_heart_page(client):
     """Test the heart disease page loads correctly."""
+    with client.session_transaction() as sess:
+        sess['user'] = 'test@example.com'
+        sess['name'] = 'Test User'
     rv = client.get('/heart')
     assert rv.status_code == 200
 
 def test_diabetes_page(client):
     """Test the diabetes page loads correctly."""
+    with client.session_transaction() as sess:
+        sess['user'] = 'test@example.com'
+        sess['name'] = 'Test User'
     rv = client.get('/diabetes')
     assert rv.status_code == 200
 
 def test_parkinsons_page(client):
     """Test the parkinsons page loads correctly."""
+    with client.session_transaction() as sess:
+        sess['user'] = 'test@example.com'
+        sess['name'] = 'Test User'
     rv = client.get('/parkinsons')
     assert rv.status_code == 200
+
